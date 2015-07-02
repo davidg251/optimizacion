@@ -2,11 +2,9 @@
 David Ernesto Gomez Gutierrez
 20/junio/2015
 Por hacer:
--
+-validacion archivo
+-recibir archivo args
 */
-
-
-
 #include <stdio.h>
 #include <string.h>
 #include "lp_lib.h"
@@ -80,6 +78,7 @@ int ejecutarSimplex()
     sprintf(str,"x%i",i);
 
     set_col_name(lp,i,str); //reservo espacio para variables del modelo
+    set_binary(lp, i, TRUE);
   }
 
   //reservo espacio para listas
@@ -164,7 +163,7 @@ int ejecutarSimplex()
    {
       k++;
       colno[i] = j;
-	    row[i++] = costos[j-1] * demandas_ofertas[k+3] ;
+      row[i++] = costos[j-1] * demandas_ofertas[k+3] ;
 
 
       if(k==2) k=-1;
@@ -191,7 +190,7 @@ int ejecutarSimplex()
     for(i=0;i<9;i++)
     {
       //printf("%s: %f \n",get_col_name(lp, i+1), row[i]);
-      resultado[i] = (int)round(row[i]);
+      resultado[i] = row[i];
     }
 
 
@@ -205,13 +204,14 @@ int ejecutarSimplex()
 
 void escribirArchivo()
 {
-  int i,j=0;
+  int planta=1,i=0,j=0;
   char cadena_temporal[50];
   archivo_salida = fopen("salida.txt","w");
 
   for (i = 0;  i < 9; i++)
   {
     j++;
+    printf("%i \n",resultado[i]);
     if(resultado[i])
     {
       switch (i)
@@ -219,28 +219,28 @@ void escribirArchivo()
         case 0:
         case 3:
         case 6:
-        sprintf(cadena_temporal,"Planta %i: Palmira. \n",j);
+        sprintf(cadena_temporal,"Planta %i: Palmira. \n",planta);
         fputs(cadena_temporal, archivo_salida);
         break;
 
         case 1:
         case 4:
         case 7:
-        sprintf(cadena_temporal,"Planta %i: Tulua. \n",j);
+        sprintf(cadena_temporal,"Planta %i: Tulua. \n",planta);
         fputs(cadena_temporal, archivo_salida);
         break;
 
         case 2:
         case 5:
         case 8:
-        sprintf(cadena_temporal,"Planta %i: Cali. \n",j);
+        sprintf(cadena_temporal,"Planta %i: Cali. \n",planta);
         fputs(cadena_temporal, archivo_salida);
         break;
       }
 
     }
     funcion_objetivo += resultado[i] * costos[i];
-    if(j==3)j=0;
+    if(j==3)planta++;
   }
 
   sprintf(cadena_temporal,"Funcion Objetivo: %i \n",funcion_objetivo);
