@@ -1,6 +1,6 @@
-*.txt
+salida.data
 model.lp
 ccc
 demo
 *.out
-
+*.txt

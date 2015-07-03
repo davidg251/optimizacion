@@ -1,9 +1,6 @@
 /*
 David Ernesto Gomez Gutierrez
 20/junio/2015
-Por hacer:
--validacion archivo
--recibir archivo args
 */
 #include <stdio.h>
 #include <string.h>
@@ -19,7 +16,7 @@ int funcion_objetivo = 0.0;
 FILE *archivo_entrada;
 FILE *archivo_salida;
 
-void leerArchivo()
+void leerArchivo(char *cadena)
 {
   char ch;
   char linea[100];
@@ -28,7 +25,13 @@ void leerArchivo()
   int numero_temporal = 0;
   int index = 0;
 
-  archivo_entrada = fopen("entrada.txt","r");
+
+  archivo_entrada = fopen(cadena,"r") ;
+  if(!archivo_entrada)
+  {
+    perror("(1)ERROR No se puede leer archivo o No existe ");
+    exit(0);
+  }
 
   while( (ch = fgetc(archivo_entrada)) != EOF)
   {
@@ -41,6 +44,11 @@ void leerArchivo()
       while (token != NULL)
       {
         numero_temporal = atoi(token);
+        if(numero_temporal<0)
+        {
+          perror("(4)ERROR Datos de entrada no validos.");
+          exit(-1);
+        }
         demandas_ofertas[index] = numero_temporal;
         token = strtok(NULL, " ");
         index++;
@@ -179,7 +187,7 @@ int ejecutarSimplex()
 
   if(solve(lp) != OPTIMAL)
   {
-    perror("Algo ha salido mal");
+    perror("(2)ERROR Algo ha salido mal el modelo es no factible");
   }
   else
   {
@@ -206,12 +214,13 @@ void escribirArchivo()
 {
   int planta=1,i=0,j=0;
   char cadena_temporal[50];
-  archivo_salida = fopen("salida.txt","w");
+  archivo_salida = fopen("salida.data","w");
 
   for (i = 0;  i < 9; i++)
   {
     j++;
-    printf("%i \n",resultado[i]);
+    printf("%i\n",j);
+    printf("asd%i \n",resultado[i]);
     if(resultado[i])
     {
       switch (i)
@@ -240,7 +249,8 @@ void escribirArchivo()
 
     }
     funcion_objetivo += resultado[i] * costos[i];
-    if(j==3)planta++;
+    if(j==3){planta++;j=0;}
+
   }
 
   sprintf(cadena_temporal,"Funcion Objetivo: %i \n",funcion_objetivo);
@@ -252,8 +262,14 @@ void escribirArchivo()
 
 int main(int argc, char const *argv[])
 {
+  if(argc < 2)
+  {
+    perror("(3)ERROR Hacen falta argumentos.");
+    return 0;
+  }
 
-  leerArchivo();
+
+  leerArchivo((char *)argv[1]);
   ejecutarSimplex();
   escribirArchivo();
   return 0;
