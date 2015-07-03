@@ -12,7 +12,7 @@ Variables globales
 int demandas_ofertas[6] = {0};
 int costos[9] = {600,700,500,320,300,350,500,480,510};
 int resultado[9] = {0};
-int funcion_objetivo = 0.0;
+int funcion_objetivo = 0;
 FILE *archivo_entrada;
 FILE *archivo_salida;
 
@@ -44,7 +44,7 @@ void leerArchivo(char *cadena)
       while (token != NULL)
       {
         numero_temporal = atoi(token);
-        if(numero_temporal<0)
+        if(numero_temporal < 0)
         {
           perror("(4)ERROR Datos de entrada no validos.");
           exit(-1);
@@ -172,8 +172,8 @@ int ejecutarSimplex()
       k++;
       colno[i] = j;
       row[i++] = costos[j-1] * demandas_ofertas[k+3] ;
-
-
+      costos[j-1] = costos[j-1] * demandas_ofertas[k+3];
+      printf("%i\n",costos[j-1] );
       if(k==2) k=-1;
 
     }
@@ -183,7 +183,7 @@ int ejecutarSimplex()
 
   write_lp(lp, "model.lp");
   //write_LP(lp, stdout);
-  //libero memoria
+
 
   if(solve(lp) != OPTIMAL)
   {
@@ -192,7 +192,7 @@ int ejecutarSimplex()
   else
   {
     //printf("Valor funcion objetivo: %f\n", get_objective(lp));
-    funcion_objetivo = get_objective(lp);
+    //funcion_objetivo = get_objective(lp);
     get_variables(lp, row);
 
     for(i=0;i<9;i++)
@@ -203,7 +203,7 @@ int ejecutarSimplex()
 
 
   }
-
+  //libero memoria
   delete_lp(lp);
   free(row);
   free(colno);
@@ -219,8 +219,6 @@ void escribirArchivo()
   for (i = 0;  i < 9; i++)
   {
     j++;
-    printf("%i\n",j);
-    printf("asd%i \n",resultado[i]);
     if(resultado[i])
     {
       switch (i)
@@ -248,14 +246,18 @@ void escribirArchivo()
       }
 
     }
-    funcion_objetivo += resultado[i] * costos[i];
-    if(j==3){planta++;j=0;}
+    funcion_objetivo = funcion_objetivo + (resultado[i] * costos[i]);
+  
+    if(j==3)
+    {
+      planta++;j=0;
+    }
 
   }
 
   sprintf(cadena_temporal,"Funcion Objetivo: %i \n",funcion_objetivo);
   fputs(cadena_temporal, archivo_salida);
-
+  fclose(archivo_salida);
 }
 
 
@@ -267,7 +269,6 @@ int main(int argc, char const *argv[])
     perror("(3)ERROR Hacen falta argumentos.");
     return 0;
   }
-
 
   leerArchivo((char *)argv[1]);
   ejecutarSimplex();
